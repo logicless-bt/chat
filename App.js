@@ -8,22 +8,23 @@ import Chat from './components/Chat';
 const Stack = createNativeStackNavigator();
 
 const App = () => {
+  console.log("app started");
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName = "Start"
-      >
-        <Stack.Screen 
-          name = "Start"
-          component = {Start}
-        />
-        <Stack.Screen 
-          name = "Chat"
-          component = {Chat}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName = "Start"
+        >
+          <Stack.Screen 
+            name = "Start"
+            component = {Start}
+          />
+          <Stack.Screen 
+            name = "Chat"
+            component = {Chat}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
 }
 
 const styles = StyleSheet.create({

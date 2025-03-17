@@ -1,7 +1,12 @@
-import { StyleSheet, View, Text, Button, TextInput, ImageBackground, TouchableOpacity } from 'react-native';
+import { 
+  StyleSheet, View, Text, 
+  Button, TextInput, ImageBackground, 
+  TouchableOpacity, Platform, KeyboardAvoidingView
+} from 'react-native';
 import { useState } from 'react';
 
 const Start = ({ navigation }) => {
+  console.log("start started");
   //initializing states
   const [name, setName] = useState('');
   const [color, setColor] = useState('#090C08');
@@ -42,6 +47,7 @@ const Start = ({ navigation }) => {
         </View>
       </View>
     </ImageBackground>
+    { Platform.OS === 'ios' ? <KeyboardAvoidingView behavior="padding" /> : null }
    </View>
  );
 }
@@ -71,8 +77,8 @@ const styles = StyleSheet.create({
   width: 40,
   height: 40,
   borderRadius: 20,
-  marginLeft: 5,
-  marginRight: 5
+  borderColor: 'black',
+  marginRight: 5,
  },
  textInput: {
     width: "88%",
