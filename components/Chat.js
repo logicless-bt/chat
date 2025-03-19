@@ -1,13 +1,14 @@
 import { StyleSheet, View, Text, KeyboardAvoidingView, Platform } from 'react-native';
-import { GiftedChat, Bubble } from "react-native-gifted-chat";
+import { GiftedChat, Bubble, InputToolbar, renderActions } from "react-native-gifted-chat";
 import { useState, useEffect } from 'react';
+import { collection, getDocs, addDoc, onSnapshot, query, where, orderBy } from "firebase/firestore";
+import { getAuth, signInAnonymously } from "firebase/auth";
 
-const Chat = ({ route, navigation }) => {
-    const {name, color} = route.params;
+const Chat = ({ route, navigation, db }) => {
+    const {name, color, userID} = route.params;
     const [messages, setMessages] = useState([]);
-    console.log("chat started");
     const onSend = (newMessages) => {
-      setMessages(previousMessages => GiftedChat.append(previousMessages, newMessages))
+      addDoc(collection(db, "messages"), newMessages[0]);
     }
     const renderBubble = (props) => {
       return <Bubble
@@ -24,10 +25,34 @@ const Chat = ({ route, navigation }) => {
     }
 
     useEffect(() => {
-        navigation.setOptions({ title: name });
+      //sets title to name
+      navigation.setOptions({ title: name });
+
+      //requesting messages
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+
+      //real-time listening
+      const unsubMessages = onSnapshot(q, (documentsSnapshot) => {
+        let newMessages = [];
+        documentsSnapshot.forEach(doc => {
+          newMessages.push({ 
+            id: doc.id, 
+            ...doc.data(),
+            createdAt: new Date(doc.data().createdAt.toMillis())
+          })
+        })
+
+        //set messages state
+        setMessages(newMessages);
+      });
+
+      //clean up 
+      return () => {
+        if (unsubMessages) unsubMessages();
+      }
     }, []);
 
-    useEffect(() => {
+    /*useEffect(() => {
       setMessages([
         {
           _id: 1,
@@ -46,7 +71,7 @@ const Chat = ({ route, navigation }) => {
           system: true,
         },
       ]);
-    }, []);
+    }, []);*/
 
  return (
    <View style={[styles.container, {backgroundColor: color}]}>
@@ -56,7 +81,8 @@ const Chat = ({ route, navigation }) => {
      onSend={messages => onSend(messages)}
      renderBubble={renderBubble}
      user={{
-       _id: 1
+       _id: userID,
+       name: name,
      }}
    />
    { Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null }
@@ -67,8 +93,6 @@ const Chat = ({ route, navigation }) => {
 const styles = StyleSheet.create({
  container: {
    flex: 1,
-   justifyContent: 'center',
-   alignItems: 'center'
  }
 });
 

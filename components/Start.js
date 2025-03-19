@@ -4,6 +4,7 @@ import {
   TouchableOpacity, Platform, KeyboardAvoidingView
 } from 'react-native';
 import { useState } from 'react';
+import { getAuth, signInAnonymously } from "firebase/auth";
 
 const Start = ({ navigation }) => {
   console.log("start started");
@@ -14,6 +15,18 @@ const Start = ({ navigation }) => {
   //handles onPress for the color change
   const handleColorChange = (item) => {
     setColor(item);
+  }
+
+  const auth = getAuth();
+          const signInUser = () => {
+               signInAnonymously(auth)
+              .then(result => {
+                  navigation.navigate("Chat", {userID: result.user.uid });
+                  Alert.alert("Signed in Successfully!");
+              })
+          .catch((error) => {
+            Alert.alert("Unable to sign in, try later again.");
+          })
   }
 
  return (
