@@ -1,13 +1,13 @@
 import { 
   StyleSheet, View, Text, 
   Button, TextInput, ImageBackground, 
-  TouchableOpacity, Platform, KeyboardAvoidingView
+  TouchableOpacity, Platform, KeyboardAvoidingView,
+  Alert
 } from 'react-native';
 import { useState } from 'react';
 import { getAuth, signInAnonymously } from "firebase/auth";
 
 const Start = ({ navigation }) => {
-  console.log("start started");
   //initializing states
   const [name, setName] = useState('');
   const [color, setColor] = useState('#090C08');
@@ -17,15 +17,19 @@ const Start = ({ navigation }) => {
     setColor(item);
   }
 
+  //initialize getAuth
   const auth = getAuth();
-          const signInUser = () => {
-               signInAnonymously(auth)
-              .then(result => {
-                  navigation.navigate("Chat", {userID: result.user.uid });
-                  Alert.alert("Signed in Successfully!");
-              })
+
+  //handles sign-in when "enter chat" is pressed
+  const signInUser = () => {
+    signInAnonymously(auth)
+      .then(result => {
+           navigation.navigate("Chat", {userID: result.user.uid, color, name });
+            Alert.alert("Signed in Successfully!");
+          })
           .catch((error) => {
             Alert.alert("Unable to sign in, try later again.");
+            console.error(error);
           })
   }
 
@@ -55,11 +59,12 @@ const Start = ({ navigation }) => {
         <View style = {styles.startChatting}>
           <Button
             title="Enter Chat" 
-            onPress={() => navigation.navigate('Chat', {name: name, color: color})}
+            onPress={signInUser}
           />
         </View>
       </View>
     </ImageBackground>
+    {/* handles keyboard behavior */}
     { Platform.OS === 'ios' ? <KeyboardAvoidingView behavior="padding" /> : null }
    </View>
  );

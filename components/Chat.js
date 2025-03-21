@@ -2,14 +2,22 @@ import { StyleSheet, View, Text, KeyboardAvoidingView, Platform } from 'react-na
 import { GiftedChat, Bubble, InputToolbar, renderActions } from "react-native-gifted-chat";
 import { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, onSnapshot, query, where, orderBy } from "firebase/firestore";
-import { getAuth, signInAnonymously } from "firebase/auth";
 
-const Chat = ({ route, navigation, db }) => {
+const Chat = ({ route, navigation, db, isConnected }) => {
     const {name, color, userID} = route.params;
     const [messages, setMessages] = useState([]);
+
+    //allows sending messages
     const onSend = (newMessages) => {
       addDoc(collection(db, "messages"), newMessages[0]);
     }
+
+    //will prevent input if user is offline
+    const renderInputToolbar = (props) => {
+      if (isConnected) return <InputToolbar {...props} />;
+      else return null;
+    }
+
     const renderBubble = (props) => {
       return <Bubble
         {...props}
@@ -24,33 +32,59 @@ const Chat = ({ route, navigation, db }) => {
       />
     }
 
+    //declare listener outside useEffect to prevent memory leak
+    let unsubMessages;
     useEffect(() => {
       //sets title to name
       navigation.setOptions({ title: name });
 
-      //requesting messages
-      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+      if(isConnected === true){
+        //requesting messages
+        const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
 
-      //real-time listening
-      const unsubMessages = onSnapshot(q, (documentsSnapshot) => {
-        let newMessages = [];
-        documentsSnapshot.forEach(doc => {
-          newMessages.push({ 
-            id: doc.id, 
-            ...doc.data(),
-            createdAt: new Date(doc.data().createdAt.toMillis())
+        //unregister listener
+        if (unsubMessages) unsubMessages();
+        unsubMessages = null;
+
+        //real-time listening
+        unsubMessages = onSnapshot(q, (docs) => {
+          let newMessages = [];
+          docs.forEach(doc => {
+            newMessages.push({ 
+              id: doc.id, 
+              ...doc.data(),
+              createdAt: new Date(doc.data().createdAt.toMillis())
+            })
           })
-        })
-
-        //set messages state
-        setMessages(newMessages);
-      });
-
+          //cache messages
+          cacheMessages(newMessages);
+          //set messages state
+          setMessages(newMessages);
+        });
+      } else loadCachedMessages();
       //clean up 
       return () => {
         if (unsubMessages) unsubMessages();
       }
-    }, []);
+    }, [isConnected]);
+
+    //caches messages to be accessed offline
+    const cacheMessages = async (messagesToCache) => {
+      // Cache the messages using AsyncStorage
+      try { 
+        await AsyncStorage.setItem("messages", JSON.stringify(messagesToCache));
+      } catch (error) {
+        console.log(error.message);
+      }
+    }
+
+    // Load cached messages
+    const loadCachedMessages = async () => {
+      // Load the cached messages from AsyncStorage
+      const cachedMessages = await AsyncStorage.getItem("messages") || [];
+      // Set the messages state
+      setMessages(JSON.parse(cachedMessages));
+    }
 
     /*useEffect(() => {
       setMessages([
@@ -80,6 +114,7 @@ const Chat = ({ route, navigation, db }) => {
      messages={messages}
      onSend={messages => onSend(messages)}
      renderBubble={renderBubble}
+     renderInputToolbar={renderInputToolbar}
      user={{
        _id: userID,
        name: name,
