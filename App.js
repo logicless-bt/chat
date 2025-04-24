@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getFirestore, disableNetwork, enableNetwork } from "firebase/firestore";
+import { getStorage } from 'firebase/storage';
 import { StyleSheet, Text, View, ImageBackground, TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -35,6 +36,9 @@ const App = () => {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  //initialize image storage
+  const storage = getStorage(app);
+
   //NetInfo tells whether or not the app is connected, then connects or disconnectss
   const connectionStatus = useNetInfo();
     useEffect(() => {
@@ -62,7 +66,9 @@ const App = () => {
           >
           {props => <Chat  
           isConnected={connectionStatus.isConnected}
-          db={db} {...props} />} 
+          db={db} 
+          storage = {storage} 
+          {...props} />} 
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
