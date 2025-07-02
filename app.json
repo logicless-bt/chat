@@ -14,7 +14,11 @@
     },
     "ios": {
       "supportsTablet": true,
-      "simulator": "false"
+      "simulator": "false",
+      "bundleIdentifier": "com.logicless.bt.chat",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -27,11 +31,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "owner": "logicless.bt",
     "extra": {
       "eas": {
-        "projectId": "b93f516d-606d-4ff2-b4a4-94bafc511619"
+        "projectId": "d4cd20c5-7077-464e-9de8-aa93c40a5797"
       }
-    },
-    "owner": "logicless.bt"
+    }
   }
 }
